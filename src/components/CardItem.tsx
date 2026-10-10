@@ -176,8 +176,14 @@ export const CardItem: React.FC<CardItemProps> = ({
               <h3 className="font-bold text-white text-base md:text-lg tracking-tight">
                 {card.name}
               </h3>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono border border-slate-700/50">
-                BIN {card.bin}
+              <span
+                className={`text-[10px] px-1.5 py-0.5 rounded font-mono border ${
+                  card.isLocked
+                    ? 'bg-amber-500/10 text-amber-300 border-amber-500/30'
+                    : 'bg-slate-800 text-slate-300 border-slate-700/50'
+                }`}
+              >
+                {card.isLocked ? `BIN ${card.bin} 🔒` : `BIN ${card.bin}`}
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-0.5 line-clamp-1 leading-relaxed">

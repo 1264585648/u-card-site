@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build && node scripts/copy-dist.js",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "gen-keys": "node scripts/gen-keys.js"
   },
   "dependencies": {
     "clsx": "^2.1.1",

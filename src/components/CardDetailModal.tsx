@@ -2,22 +2,35 @@
 
 import React from 'react';
 import { VirtualCard } from '@/types/card';
-import { X, ExternalLink, ShieldCheck, Copy, Info, CreditCard } from 'lucide-react';
+import { X, ExternalLink, ShieldCheck, Copy, Info, CreditCard, Lock, Sparkles } from 'lucide-react';
 
 interface CardDetailModalProps {
   card: VirtualCard | null;
   isOpen: boolean;
   onClose: () => void;
+  onOpenUnlock?: () => void;
 }
 
 export const CardDetailModal: React.FC<CardDetailModalProps> = ({
   card,
   isOpen,
   onClose,
+  onOpenUnlock,
 }) => {
   if (!isOpen || !card) return null;
 
+  const isLocked = Boolean(card.isLocked);
+
   const copyBin = () => {
+    if (isLocked) {
+      if (onOpenUnlock) {
+        onClose();
+        onOpenUnlock();
+      } else {
+        alert('该卡片为 VIP 专属卡档，请先输入卡密解锁完整 BIN 码');
+      }
+      return;
+    }
     navigator.clipboard.writeText(card.bin);
     alert(`已复制卡段 BIN 码：${card.bin}`);
   };
@@ -44,6 +57,12 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
                     {card.promoBadge}
                   </span>
                 )}
+                {isLocked && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1 font-semibold">
+                    <Lock className="w-2.5 h-2.5" />
+                    <span>需解锁</span>
+                  </span>
+                )}
               </div>
               <p className="text-xs text-gray-400 mt-0.5">发行机构：{card.issuer}</p>
             </div>
@@ -62,13 +81,15 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
           <div>
             <span className="text-gray-400 block mb-0.5">BIN 卡段</span>
             <div className="flex items-center gap-1.5 font-mono font-semibold text-white">
-              <span>{card.bin}</span>
+              <span className={isLocked ? 'text-amber-300' : 'text-white'}>
+                {card.bin}
+              </span>
               <button
                 onClick={copyBin}
                 className="text-gray-500 hover:text-indigo-400 transition"
-                title="复制 BIN 码"
+                title={isLocked ? '卡密解锁完整 BIN' : '复制 BIN 码'}
               >
-                <Copy className="w-3.5 h-3.5" />
+                {isLocked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : <Copy className="w-3.5 h-3.5" />}
               </button>
             </div>
           </div>
@@ -112,7 +133,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
           </h4>
           <div className="p-3 rounded-xl bg-gray-900/60 border border-gray-800 text-xs text-gray-300 space-y-1 leading-relaxed">
             <p>• 身份证：{card.kycRequirements.idCard === 'NEED' ? '✅ 中国大陆身份证可用' : '❌ 不支持身份证'}</p>
-            <p>• 护照：{card.kycRequirements.passport === 'NEED' ? '✅ 必须护照原件扫描' : '➖ 无需护照'}</p>
+            <p>• 护护：{card.kycRequirements.passport === 'NEED' ? '✅ 必须护照原件扫描' : '➖ 无需护照'}</p>
             <p>• 人脸识别：{card.kycRequirements.faceRecognition === 'NEED' ? '✅ 需要手机活体扫脸' : '➖ 无需人脸'}</p>
             <p>• 海外证明：{card.kycRequirements.overseasProof === 'NEED' ? '⚠️ 需要海外地址证明 (POA/水电账单)' : '➖ 无需海外地址'}</p>
             <p>• 海外手机号：{card.kycRequirements.overseasPhone === 'NEED' ? '⚠️ 需境外号码接收短信验证' : '➖ +86 国内手机号可用'}</p>
@@ -134,15 +155,28 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
 
         {/* 底部行动 CTA 按钮 */}
         <div className="pt-2">
-          <a
-            href={card.referralUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg transition"
-          >
-            <span>立即申请开通 {card.name}</span>
-            <ExternalLink className="w-4 h-4" />
-          </a>
+          {isLocked ? (
+            <button
+              onClick={() => {
+                onClose();
+                if (onOpenUnlock) onOpenUnlock();
+              }}
+              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-indigo-600 to-purple-600 hover:from-amber-400 hover:to-indigo-500 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 transition cursor-pointer"
+            >
+              <Lock className="w-4 h-4" />
+              <span>输入卡密解锁官方直达通道</span>
+            </button>
+          ) : (
+            <a
+              href={card.referralUrl || '#'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg transition"
+            >
+              <span>立即申请开通 {card.name}</span>
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          )}
         </div>
       </div>
     </div>

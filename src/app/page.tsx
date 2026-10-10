@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { INITIAL_CARDS } from '@/data/cards';
 import { VirtualCard, SupportStatus, AdvancedFilterState, DEFAULT_FILTER_STATE } from '@/types/card';
 import {
@@ -13,7 +13,23 @@ import { FilterDrawer } from '@/components/FilterDrawer';
 import { CostCalculatorDrawer } from '@/components/CostCalculatorDrawer';
 import { LivenessVoteModal } from '@/components/LivenessVoteModal';
 import { CardDetailModal } from '@/components/CardDetailModal';
-import { CreditCard, Sparkles, Shield, RefreshCw, Layers, CheckCircle2, Zap, ChevronDown, ListFilter, AlertCircle, Lightbulb, Loader2 } from 'lucide-react';
+import { UnlockModal } from '@/components/UnlockModal';
+import { verifyLicenseTokenClient } from '@/lib/license';
+import {
+  CreditCard,
+  Sparkles,
+  Shield,
+  RefreshCw,
+  Layers,
+  CheckCircle2,
+  Zap,
+  ChevronDown,
+  ListFilter,
+  AlertCircle,
+  Loader2,
+  KeyRound,
+  Lock,
+} from 'lucide-react';
 
 const PAGE_CHUNK = 24;
 
@@ -24,6 +40,11 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [filters, setFilters] = useState<AdvancedFilterState>(DEFAULT_FILTER_STATE);
   const [visibleCount, setVisibleCount] = useState<number>(PAGE_CHUNK);
+
+  // VIP 卡密解锁状态
+  const [isUnlocked, setIsUnlocked] = useState<boolean>(false);
+  const [licenseKey, setLicenseKey] = useState<string>('');
+  const [isUnlockModalOpen, setIsUnlockModalOpen] = useState<boolean>(false);
 
   // 云端安全存储与分页状态
   const [isLoadingCards, setIsLoadingCards] = useState<boolean>(false);
@@ -42,33 +63,75 @@ export default function HomePage() {
     label: string;
   } | null>(null);
 
-  // 1. 初始化安全加载：从 API (/api/cards) 按需拉取卡片，避免全量前端暴露
-  useEffect(() => {
-    let ignore = false;
-    async function fetchInitialCards() {
-      setIsLoadingCards(true);
-      try {
-        const res = await fetch('/api/cards?page=1&limit=36');
-        if (res.ok) {
-          const json = await res.json();
-          if (!ignore && json.data && Array.isArray(json.data) && json.data.length > 0) {
-            setCards(json.data);
-            setTotalServerCards(json.total || json.data.length);
-            setHasMoreServer(json.hasMore ?? false);
-            setServerPage(1);
+  // 辅助函数：根据 Token 拉取首页数据
+  const fetchCardsWithToken = useCallback(async (token: string) => {
+    setIsLoadingCards(true);
+    try {
+      const url = token
+        ? `/api/cards?page=1&limit=36&token=${encodeURIComponent(token)}`
+        : '/api/cards?page=1&limit=36';
+      const res = await fetch(url);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data && Array.isArray(json.data) && json.data.length > 0) {
+          setCards(json.data);
+          setTotalServerCards(json.total || json.data.length);
+          setHasMoreServer(json.hasMore ?? false);
+          setServerPage(1);
+          if (json.isVipUnlocked !== undefined) {
+            setIsUnlocked(Boolean(json.isVipUnlocked));
           }
         }
-      } catch (err) {
-        console.warn('API fetch fallback to preview cards:', err);
-      } finally {
-        if (!ignore) setIsLoadingCards(false);
       }
+    } catch (err) {
+      console.warn('API fetch fallback to preview cards:', err);
+    } finally {
+      setIsLoadingCards(false);
     }
-    fetchInitialCards();
-    return () => {
-      ignore = true;
-    };
   }, []);
+
+  // 1. 初始化安全加载：读取本地已存卡密并拉取云端数据
+  useEffect(() => {
+    async function initSession() {
+      let activeKey = '';
+      try {
+        const savedKey = localStorage.getItem('ucard_license_key');
+        if (savedKey) {
+          const isValid = await verifyLicenseTokenClient(savedKey);
+          if (isValid) {
+            activeKey = savedKey;
+            setLicenseKey(savedKey);
+            setIsUnlocked(true);
+          }
+        }
+      } catch (e) {
+        console.warn('LocalStorage access warning:', e);
+      }
+      fetchCardsWithToken(activeKey);
+    }
+
+    initSession();
+  }, [fetchCardsWithToken]);
+
+  // 卡密激活成功回调
+  const handleUnlockSuccess = (token: string) => {
+    try {
+      localStorage.setItem('ucard_license_key', token);
+    } catch {}
+    setLicenseKey(token);
+    setIsUnlocked(true);
+    fetchCardsWithToken(token);
+  };
+
+  // 卡密注销回调
+  const handleUnlockReset = () => {
+    try {
+      localStorage.removeItem('ucard_license_key');
+    } catch {}
+    setLicenseKey('');
+    setIsUnlocked(false);
+    fetchCardsWithToken('');
+  };
 
   // 2. 测活投票提交处理：乐观更新 UI + 后端持久化存储 (/api/vote)
   const handleVoteSubmit = async (
@@ -132,7 +195,10 @@ export default function HomePage() {
     setIsLoadingMore(true);
     try {
       const nextPage = serverPage + 1;
-      const res = await fetch(`/api/cards?page=${nextPage}&limit=36`);
+      const url = licenseKey
+        ? `/api/cards?page=${nextPage}&limit=36&token=${encodeURIComponent(licenseKey)}`
+        : `/api/cards?page=${nextPage}&limit=36`;
+      const res = await fetch(url);
       if (res.ok) {
         const json = await res.json();
         if (json.data && Array.isArray(json.data)) {
@@ -295,12 +361,30 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* 实时状态指示微徽标 */}
-          <div className="flex items-center gap-2 self-start md:self-center">
+          {/* 实时状态与卡密解锁动作区 */}
+          <div className="flex flex-wrap items-center gap-2.5 self-start md:self-center">
+            {isUnlocked ? (
+              <button
+                onClick={() => setIsUnlockModalOpen(true)}
+                className="flex items-center gap-1.5 text-xs text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 px-3.5 py-1.5 rounded-full shadow-sm transition font-medium cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>VIP 完整特权已解锁</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => setIsUnlockModalOpen(true)}
+                className="flex items-center gap-1.5 text-xs text-white bg-gradient-to-r from-amber-500 via-indigo-600 to-purple-600 hover:from-amber-400 hover:to-indigo-500 px-3.5 py-1.5 rounded-full shadow-lg shadow-indigo-600/20 transition font-bold cursor-pointer"
+              >
+                <KeyRound className="w-3.5 h-3.5 text-amber-200" />
+                <span>输入卡密解锁完整档案</span>
+              </button>
+            )}
+
             <div className="flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-full shadow-sm">
               <span className="w-2 h-2 rounded-full bg-emerald-400 live-pulse-emerald" />
               <span className="font-medium">
-                {isLoadingCards ? '正在连接安全数据存储...' : `官方费率与测活节点在线 (云端数据库共 ${totalServerCards} 张)`}
+                {isLoadingCards ? '正在连接安全数据存储...' : `在线 (${totalServerCards} 卡)`}
               </span>
             </div>
           </div>
@@ -348,6 +432,31 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+
+        {/* 游客试看提示横幅 (极佳的引流转化入口) */}
+        {!isUnlocked && (
+          <div className="p-3.5 rounded-2xl bg-gradient-to-r from-indigo-950/70 via-purple-950/40 to-slate-900 border border-indigo-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400 flex-shrink-0">
+                <Lock className="w-4 h-4" />
+              </div>
+              <div className="text-xs">
+                <p className="font-bold text-white flex items-center gap-1.5">
+                  <span>当前处于游客试看模式（已开放前 3 张精选卡试看）</span>
+                </p>
+                <p className="text-slate-400 mt-0.5">
+                  输入专属卡密/Token 可立即解锁全部 300+ 虚拟卡完整 BIN 段、直达开卡通道与避坑指南
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsUnlockModalOpen(true)}
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white font-bold text-xs shadow-md transition whitespace-nowrap self-start sm:self-auto cursor-pointer"
+            >
+              输入卡密解锁
+            </button>
+          </div>
+        )}
       </header>
 
       {/* 导航、智能搜索、高级筛选与快捷药丸 */}
@@ -448,37 +557,15 @@ export default function HomePage() {
             <div>
               <p className="font-bold text-white text-base">暂无完全符合当前组合条件的卡片</p>
               <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
-                你设定的多重筛选条件较为严格。尝试放宽其中一项目标即可匹配到更多卡片：
+                建议尝试放宽筛选条件，或在上方搜索框直接检索卡片名称 / 发卡机构 / BIN 卡段。
               </p>
             </div>
-
-            {/* 智能降级推荐操作 */}
-            <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-              {filters.fees.zeroDepositFee && (
-                <button
-                  onClick={() => setFilters({ ...filters, fees: { ...filters.fees, zeroDepositFee: false } })}
-                  className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-indigo-300 border border-white/10 text-xs flex items-center gap-1 transition"
-                >
-                  <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
-                  <span>放宽充值扣点限制 (接受 &gt;0%)</span>
-                </button>
-              )}
-              {filters.kyc.idCardOnly && (
-                <button
-                  onClick={() => setFilters({ ...filters, kyc: { ...filters.kyc, idCardOnly: false } })}
-                  className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-indigo-300 border border-white/10 text-xs flex items-center gap-1 transition"
-                >
-                  <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
-                  <span>允许支持护照认证的卡种</span>
-                </button>
-              )}
-              <button
-                onClick={handleResetFilters}
-                className="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md transition"
-              >
-                重置所有筛选条件
-              </button>
-            </div>
+            <button
+              onClick={handleResetFilters}
+              className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition"
+            >
+              一键重置所有筛选
+            </button>
           </div>
         )}
       </section>
@@ -536,6 +623,17 @@ export default function HomePage() {
         isOpen={!!selectedCard}
         onClose={() => setSelectedCard(null)}
         card={selectedCard}
+        onOpenUnlock={() => setIsUnlockModalOpen(true)}
+      />
+
+      {/* 算法卡密 VIP 解锁弹窗 */}
+      <UnlockModal
+        isOpen={isUnlockModalOpen}
+        onClose={() => setIsUnlockModalOpen(false)}
+        isUnlocked={isUnlocked}
+        currentKey={licenseKey}
+        onSuccess={handleUnlockSuccess}
+        onReset={handleUnlockReset}
       />
     </main>
   );

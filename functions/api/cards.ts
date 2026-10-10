@@ -1,15 +1,30 @@
 // Cloudflare Pages Function: GET /api/cards
-// 提供带防爬分页、按需查询与数据字段隔离脱敏的卡片检索接口
+// 提供带算法卡密鉴权、防爬脱敏与按需查询的卡片检索接口
+
+import { verifyLicenseToken, DEFAULT_SALT } from './_license';
 
 interface Env {
   DB?: any; // Cloudflare D1Database
+  LICENSE_SALT?: string;
 }
 
 export const onRequestGet = async (context: { request: Request; env: Env }) => {
   const url = new URL(context.request.url);
   const searchParams = url.searchParams;
 
-  // 1. 防刷与分页参数限制 (单次最多拉取 36 条，防止一键扒库)
+  // 1. 卡密验算：从 URL 参数或 Authorization 请求头获取
+  let token = searchParams.get('token') || '';
+  if (!token) {
+    const authHeader = context.request.headers.get('Authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    }
+  }
+
+  const salt = context.env.LICENSE_SALT || DEFAULT_SALT;
+  const isVipUnlocked = await verifyLicenseToken(token, salt);
+
+  // 2. 防刷与分页参数限制
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
   const limit = Math.min(36, Math.max(1, parseInt(searchParams.get('limit') || '24', 10)));
   const offset = (page - 1) * limit;
@@ -62,7 +77,7 @@ export const onRequestGet = async (context: { request: Request; env: Env }) => {
     const countRes = await (params.length > 0 ? countStmt.bind(...params) : countStmt).first();
     const total = countRes?.total || 0;
 
-    // 分页查询卡片，对私密字段进行隔离（例如内部合作商ID、内部结算成本不在公开展现）
+    // 查询卡片列表
     const selectQuery = `
       SELECT id, name, network, issuer, currency, bin, card_art_color, card_image,
              fees_json, kyc_json, open_json, scenarios_json, referral_url, promo_badge, is_recommended
@@ -75,24 +90,37 @@ export const onRequestGet = async (context: { request: Request; env: Env }) => {
     const selectParams = [...params, limit, offset];
     const { results } = await db.prepare(selectQuery).bind(...selectParams).all();
 
-    // 格式化输出为前端标准 VirtualCard 结构
-    const formattedCards = (results || []).map((row: any) => ({
-      id: row.id,
-      name: row.name,
-      network: row.network,
-      issuer: row.issuer,
-      currency: row.currency,
-      bin: row.bin,
-      cardArtColor: row.card_art_color,
-      cardImage: row.card_image,
-      fees: JSON.parse(row.fees_json || '{}'),
-      kycRequirements: JSON.parse(row.kyc_json || '{}'),
-      openRequirements: JSON.parse(row.open_json || '{}'),
-      scenarios: JSON.parse(row.scenarios_json || '{}'),
-      referralUrl: row.referral_url,
-      promoBadge: row.promo_badge,
-      isRecommended: Boolean(row.is_recommended),
-    }));
+    // 格式化输出为前端标准 VirtualCard 结构，并根据卡密解锁状态执行核心数据脱敏保护
+    const formattedCards = (results || []).map((row: any, index: number) => {
+      const globalIndex = offset + index;
+      // 允许前 3 张推荐卡公开试看（增强真实感与引流转化），其余卡片未输入卡密时加锁保护
+      const shouldLock = !isVipUnlocked && globalIndex >= 3;
+
+      const maskedBin = shouldLock
+        ? (row.bin ? `${row.bin.slice(0, 3)}***` : '***')
+        : row.bin;
+
+      const referralUrl = shouldLock ? '' : row.referral_url;
+
+      return {
+        id: row.id,
+        name: row.name,
+        network: row.network,
+        issuer: row.issuer,
+        currency: row.currency,
+        bin: maskedBin,
+        cardArtColor: row.card_art_color,
+        cardImage: row.card_image,
+        fees: JSON.parse(row.fees_json || '{}'),
+        kycRequirements: JSON.parse(row.kyc_json || '{}'),
+        openRequirements: JSON.parse(row.open_json || '{}'),
+        scenarios: JSON.parse(row.scenarios_json || '{}'),
+        referralUrl,
+        promoBadge: row.promo_badge,
+        isRecommended: Boolean(row.is_recommended),
+        isLocked: shouldLock,
+      };
+    });
 
     const responsePayload = {
       code: 0,
@@ -101,6 +129,7 @@ export const onRequestGet = async (context: { request: Request; env: Env }) => {
       total,
       totalPages: Math.ceil(total / limit),
       hasMore: offset + limit < total,
+      isVipUnlocked,
       data: formattedCards,
     };
 
@@ -108,7 +137,7 @@ export const onRequestGet = async (context: { request: Request; env: Env }) => {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=60, s-maxage=180',
+        'Cache-Control': isVipUnlocked ? 'private, no-cache' : 'public, max-age=60, s-maxage=120',
         'Access-Control-Allow-Origin': '*',
       },
     });

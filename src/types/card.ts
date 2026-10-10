@@ -73,6 +73,7 @@ export interface VirtualCard {
   referralUrl: string;
   promoBadge?: string;
   isRecommended?: boolean;
+  isLocked?: boolean;                 // 算法卡密保护：未解锁状态
 }
 
 // 高级多维筛选状态接口

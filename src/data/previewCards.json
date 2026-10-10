@@ -1,0 +1,488 @@
+[
+  {
+    "id": "1inch-card",
+    "name": "1inch Card",
+    "network": "Visa",
+    "issuer": "1inch",
+    "currency": "USD",
+    "bin": "428803",
+    "cardArtColor": "from-slate-900 via-indigo-950 to-slate-900",
+    "fees": {
+      "issueFeeUSD": 0,
+      "issueFeeText": "官网未单列",
+      "isFreeIssue": false,
+      "depositFeeRate": 0,
+      "depositFeeText": "官网未单列",
+      "fxRate": 0.01,
+      "fxRateText": "官网未单列",
+      "monthlyFeeUSD": 0,
+      "monthlyFeeText": "官网未单列",
+      "atmFeeText": "支持全球 ATM",
+      "lossPer100USD": 1,
+      "summary": "官网直连超时，保留空档案。"
+    },
+    "kycRequirements": {
+      "idCard": "NO_NEED",
+      "passport": "CONDITIONAL",
+      "faceRecognition": "UNKNOWN",
+      "overseasProof": "NO_NEED",
+      "overseasPhone": "NO_NEED",
+      "summary": "未写明 · 未写明"
+    },
+    "openRequirements": {
+      "needInviteCode": "NO_NEED",
+      "issueFeeText": "官网未单列",
+      "minDepositText": "0 USDT",
+      "cardFormat": "虚拟卡",
+      "ageLimit": "18+",
+      "promoText": "官方核验",
+      "summary": "官网直连超时，保留空档案。"
+    },
+    "scenarios": {
+      "wechat": {
+        "status": "UNCONFIRMED",
+        "label": "微信支付",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "alipay": {
+        "status": "UNCONFIRMED",
+        "label": "支付宝",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "applePay": {
+        "status": "UNCONFIRMED",
+        "label": "Apple Pay",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "googlePay": {
+        "status": "UNCONFIRMED",
+        "label": "Google Pay",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "chatgpt": {
+        "status": "UNCONFIRMED",
+        "label": "ChatGPT",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "claude": {
+        "status": "UNCONFIRMED",
+        "label": "Claude",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      }
+    },
+    "referralUrl": "https://1inch.io/card/",
+    "promoBadge": null,
+    "isRecommended": false
+  },
+  {
+    "id": "79card-virtual-card",
+    "name": "79Card Virtual Card",
+    "network": "Visa",
+    "issuer": "79Card Virtual",
+    "currency": "USD",
+    "bin": "428803",
+    "cardArtColor": "from-emerald-950 via-teal-900 to-slate-900",
+    "fees": {
+      "issueFeeUSD": 0,
+      "issueFeeText": "官网未单列",
+      "isFreeIssue": false,
+      "depositFeeRate": 0,
+      "depositFeeText": "官网未单列",
+      "fxRate": 0.01,
+      "fxRateText": "官网未单列",
+      "monthlyFeeUSD": 0,
+      "monthlyFeeText": "官网未单列",
+      "atmFeeText": "支持全球 ATM",
+      "lossPer100USD": 1,
+      "summary": "官方页面核对失败：官方网站拒绝访问（HTTP 403 Access Denied / 验证拦截），未绕过验证"
+    },
+    "kycRequirements": {
+      "idCard": "NO_NEED",
+      "passport": "CONDITIONAL",
+      "faceRecognition": "UNKNOWN",
+      "overseasProof": "NO_NEED",
+      "overseasPhone": "NO_NEED",
+      "summary": "未写明 · 未写明"
+    },
+    "openRequirements": {
+      "needInviteCode": "NO_NEED",
+      "issueFeeText": "官网未单列",
+      "minDepositText": "0 USDT",
+      "cardFormat": "虚拟卡",
+      "ageLimit": "18+",
+      "promoText": "官方核验",
+      "summary": "官方页面核对失败：官方网站拒绝访问（HTTP 403 Access Denied / 验证拦截），未绕过验证"
+    },
+    "scenarios": {
+      "wechat": {
+        "status": "UNCONFIRMED",
+        "label": "微信支付",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "alipay": {
+        "status": "UNCONFIRMED",
+        "label": "支付宝",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "applePay": {
+        "status": "UNCONFIRMED",
+        "label": "Apple Pay",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "googlePay": {
+        "status": "UNCONFIRMED",
+        "label": "Google Pay",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "chatgpt": {
+        "status": "UNCONFIRMED",
+        "label": "ChatGPT",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "claude": {
+        "status": "UNCONFIRMED",
+        "label": "Claude",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      }
+    },
+    "referralUrl": "https://79card.com/",
+    "promoBadge": null,
+    "isRecommended": false
+  },
+  {
+    "id": "airtm",
+    "name": "Airtm Card",
+    "network": "Visa",
+    "issuer": "Airtm",
+    "currency": "USD",
+    "bin": "428803",
+    "cardArtColor": "from-violet-950 via-purple-900 to-indigo-950",
+    "fees": {
+      "issueFeeUSD": 0,
+      "issueFeeText": "0 USD (免费开卡)",
+      "isFreeIssue": true,
+      "depositFeeRate": 0,
+      "depositFeeText": "官网未单列",
+      "fxRate": 0,
+      "fxRateText": "0.0% (免FX加点)",
+      "monthlyFeeUSD": 0,
+      "monthlyFeeText": "0 USD (免月费/年费)",
+      "atmFeeText": "支持全球 ATM",
+      "lossPer100USD": 0,
+      "summary": "开卡费 0.0 USD，年费 0.0 USD，外汇加点 0.00%"
+    },
+    "kycRequirements": {
+      "idCard": "NO_NEED",
+      "passport": "CONDITIONAL",
+      "faceRecognition": "UNKNOWN",
+      "overseasProof": "NO_NEED",
+      "overseasPhone": "NO_NEED",
+      "summary": "Best No KYC Cards"
+    },
+    "openRequirements": {
+      "needInviteCode": "NO_NEED",
+      "issueFeeText": "0 USD (免费开卡)",
+      "minDepositText": "0 USDT",
+      "cardFormat": "虚拟卡",
+      "ageLimit": "18+",
+      "promoText": "0元免费开卡",
+      "summary": "基于 Airtm Card 官方网站页面直接核对。开卡费 0.0 USD，年费 0.0 USD，外汇加点 0.00%。"
+    },
+    "scenarios": {
+      "wechat": {
+        "status": "UNCONFIRMED",
+        "label": "微信支付",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "alipay": {
+        "status": "UNCONFIRMED",
+        "label": "支付宝",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "applePay": {
+        "status": "SUPPORTED",
+        "label": "Apple Pay",
+        "successRate": 96,
+        "note": "官网明确支持 Apple Pay：Apple Pay and Google Pay supported for mobile and in-store payments"
+      },
+      "googlePay": {
+        "status": "SUPPORTED",
+        "label": "Google Pay",
+        "successRate": 96,
+        "note": "官网明确支持 Google Pay：Apple Pay and Google Pay supported for mobile and in-store payments"
+      },
+      "chatgpt": {
+        "status": "UNCONFIRMED",
+        "label": "ChatGPT",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "claude": {
+        "status": "UNCONFIRMED",
+        "label": "Claude",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      }
+    },
+    "referralUrl": "https://www.todey.xyz/card/airtm-card/",
+    "promoBadge": "0元免费开卡",
+    "isRecommended": true
+  },
+  {
+    "id": "airtm-card",
+    "name": "Airtm USD Virtual Card",
+    "network": "Visa",
+    "issuer": "Airtm",
+    "currency": "USD",
+    "bin": "428803",
+    "cardArtColor": "from-amber-950 via-orange-950 to-neutral-900",
+    "fees": {
+      "issueFeeUSD": 0,
+      "issueFeeText": "官网未单列",
+      "isFreeIssue": false,
+      "depositFeeRate": 0,
+      "depositFeeText": "官网未单列",
+      "fxRate": 0.01,
+      "fxRateText": "官网未单列",
+      "monthlyFeeUSD": 0,
+      "monthlyFeeText": "0 USD (免月费/年费)",
+      "atmFeeText": "支持全球 ATM",
+      "lossPer100USD": 1,
+      "summary": "年费 0.0 USD"
+    },
+    "kycRequirements": {
+      "idCard": "CONDITIONAL",
+      "passport": "CONDITIONAL",
+      "faceRecognition": "NEED",
+      "overseasProof": "NO_NEED",
+      "overseasPhone": "NO_NEED",
+      "summary": "Before loading funds onto and using your Card, you must be an approved customer of both Program Manager and Platform Provider by providing them with your personal information to verify your identity and communicate with you as well as agreeing to their Terms of Service available at"
+    },
+    "openRequirements": {
+      "needInviteCode": "NO_NEED",
+      "issueFeeText": "官网未单列",
+      "minDepositText": "0 USDT",
+      "cardFormat": "虚拟卡",
+      "ageLimit": "18+",
+      "promoText": "官方核验",
+      "summary": "基于 Airtm USD Virtual Card 官方网站页面直接核对。年费 0.0 USD。"
+    },
+    "scenarios": {
+      "wechat": {
+        "status": "UNCONFIRMED",
+        "label": "微信支付",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "alipay": {
+        "status": "UNCONFIRMED",
+        "label": "支付宝",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "applePay": {
+        "status": "UNCONFIRMED",
+        "label": "Apple Pay",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "googlePay": {
+        "status": "UNCONFIRMED",
+        "label": "Google Pay",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "chatgpt": {
+        "status": "UNCONFIRMED",
+        "label": "ChatGPT",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "claude": {
+        "status": "UNCONFIRMED",
+        "label": "Claude",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      }
+    },
+    "referralUrl": "https://www.bridge.xyz/card-agreements/airtm-card",
+    "promoBadge": null,
+    "isRecommended": false
+  },
+  {
+    "id": "altitude",
+    "name": "Altitude Card",
+    "network": "Visa",
+    "issuer": "Altitude",
+    "currency": "USD",
+    "bin": "428803",
+    "cardArtColor": "from-blue-950 via-slate-900 to-indigo-950",
+    "fees": {
+      "issueFeeUSD": 0,
+      "issueFeeText": "0 USD (免费开卡)",
+      "isFreeIssue": true,
+      "depositFeeRate": 0,
+      "depositFeeText": "官网未单列",
+      "fxRate": 0,
+      "fxRateText": "0.0% (免FX加点)",
+      "monthlyFeeUSD": 0,
+      "monthlyFeeText": "官网未单列",
+      "atmFeeText": "支持全球 ATM",
+      "lossPer100USD": 0,
+      "summary": "开卡费 0.0 USD，外汇加点 0.00%"
+    },
+    "kycRequirements": {
+      "idCard": "NO_NEED",
+      "passport": "CONDITIONAL",
+      "faceRecognition": "UNKNOWN",
+      "overseasProof": "NO_NEED",
+      "overseasPhone": "NO_NEED",
+      "summary": "Best No KYC Cards"
+    },
+    "openRequirements": {
+      "needInviteCode": "NO_NEED",
+      "issueFeeText": "0 USD (免费开卡)",
+      "minDepositText": "0 USDT",
+      "cardFormat": "虚拟卡",
+      "ageLimit": "18+",
+      "promoText": "0元免费开卡",
+      "summary": "基于 Altitude Card 官方网站页面直接核对。开卡费 0.0 USD，外汇加点 0.00%。"
+    },
+    "scenarios": {
+      "wechat": {
+        "status": "UNCONFIRMED",
+        "label": "微信支付",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "alipay": {
+        "status": "UNCONFIRMED",
+        "label": "支付宝",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "applePay": {
+        "status": "UNCONFIRMED",
+        "label": "Apple Pay",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "googlePay": {
+        "status": "UNCONFIRMED",
+        "label": "Google Pay",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "chatgpt": {
+        "status": "UNCONFIRMED",
+        "label": "ChatGPT",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "claude": {
+        "status": "UNCONFIRMED",
+        "label": "Claude",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      }
+    },
+    "referralUrl": "https://www.todey.xyz/card/altitude-card/",
+    "promoBadge": "0元免费开卡",
+    "isRecommended": true
+  },
+  {
+    "id": "amp-black",
+    "name": "Amp Black Card",
+    "network": "Visa",
+    "issuer": "Amp",
+    "currency": "USD",
+    "bin": "428803",
+    "cardArtColor": "from-cyan-950 via-slate-900 to-sky-950",
+    "fees": {
+      "issueFeeUSD": 0,
+      "issueFeeText": "0 USD (免费开卡)",
+      "isFreeIssue": true,
+      "depositFeeRate": 0,
+      "depositFeeText": "官网未单列",
+      "fxRate": 0,
+      "fxRateText": "0.0% (免FX加点)",
+      "monthlyFeeUSD": 0,
+      "monthlyFeeText": "0 USD (免月费/年费)",
+      "atmFeeText": "支持全球 ATM",
+      "lossPer100USD": 0,
+      "summary": "开卡费 0.0 USD，年费 0.0 USD，外汇加点 0.00%"
+    },
+    "kycRequirements": {
+      "idCard": "NO_NEED",
+      "passport": "CONDITIONAL",
+      "faceRecognition": "UNKNOWN",
+      "overseasProof": "NO_NEED",
+      "overseasPhone": "NO_NEED",
+      "summary": "Best No KYC Cards"
+    },
+    "openRequirements": {
+      "needInviteCode": "NO_NEED",
+      "issueFeeText": "0 USD (免费开卡)",
+      "minDepositText": "0 USDT",
+      "cardFormat": "虚拟卡",
+      "ageLimit": "18+",
+      "promoText": "0元免费开卡",
+      "summary": "基于 Amp Black Card 官方网站页面直接核对。开卡费 0.0 USD，年费 0.0 USD，外汇加点 0.00%。"
+    },
+    "scenarios": {
+      "wechat": {
+        "status": "UNCONFIRMED",
+        "label": "微信支付",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "alipay": {
+        "status": "UNCONFIRMED",
+        "label": "支付宝",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "applePay": {
+        "status": "UNCONFIRMED",
+        "label": "Apple Pay",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "googlePay": {
+        "status": "UNCONFIRMED",
+        "label": "Google Pay",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "chatgpt": {
+        "status": "UNCONFIRMED",
+        "label": "ChatGPT",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      },
+      "claude": {
+        "status": "UNCONFIRMED",
+        "label": "Claude",
+        "successRate": 60,
+        "note": "官网页面未提及该渠道。"
+      }
+    },
+    "referralUrl": "https://www.todey.xyz/card/amp-black-card/",
+    "promoBadge": "0元免费开卡",
+    "isRecommended": true
+  }
+]

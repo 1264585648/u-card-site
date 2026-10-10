@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>虚拟卡费率损耗计算器与测活组件原型</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    body {
+      background-color: #0b0f19;
+      color: #f3f4f6;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .glass-card {
+      background: rgba(17, 24, 39, 0.75);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glow-purple {
+      box-shadow: 0 0 25px -5px rgba(99, 102, 241, 0.25);
+    }
+    .badge-status {
+      transition: all 0.2s ease-in-out;
+    }
+    .badge-status:hover {
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body class="min-h-screen p-4 md:p-8 flex flex-col items-center">
+
+  <div class="max-w-4xl w-full space-y-8">
+    
+    <!-- 顶部标题与说明 -->
+    <header class="text-center space-y-2">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-medium">
+        <span>✨ 原型交互演示</span>
+        <span>•</span>
+        <span>U卡聚合平台核心模块</span>
+      </div>
+      <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-white">虚拟卡真实损耗计算器 & 场景测活组件</h1>
+      <p class="text-sm text-gray-400 max-w-xl mx-auto">
+        解决“隐形费率多、不知道最终扣多少 USDT”与“不确定当下能否绑定 ChatGPT/Claude”两大痛点。
+      </p>
+    </header>
+
+    <!-- 模块 1: 真实综合损耗计算器 -->
+    <section class="glass-card rounded-2xl p-6 glow-purple space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-800 pb-4">
+        <div>
+          <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+            <span class="p-1.5 rounded-lg bg-indigo-600/20 text-indigo-400 text-sm">💰</span>
+            真实消费综合损耗计算器
+          </h2>
+          <p class="text-xs text-gray-400 mt-0.5">计算充值手续费 + 网络提币费 + 跨境 FX 汇损后的实际支付 USDT</p>
+        </div>
+        <!-- 预设快捷金额 -->
+        <div class="flex items-center gap-1.5">
+          <span class="text-xs text-gray-500 mr-1">快捷场景:</span>
+          <button onclick="setAmount(20, 'ChatGPT Plus')" class="px-2.5 py-1 text-xs rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition">
+            $20 (GPT/Claude)
+          </button>
+          <button onclick="setAmount(50, '独立站/SaaS')" class="px-2.5 py-1 text-xs rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition">
+            $50
+          </button>
+          <button onclick="setAmount(200, '出金大额消费')" class="px-2.5 py-1 text-xs rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition">
+            $200
+          </button>
+        </div>
+      </div>
+
+      <!-- 输入面板 -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1.5">计划消费金额 (USD)</label>
+          <div class="relative">
+            <span class="absolute left-3 top-2.5 text-gray-500 text-sm">$</span>
+            <input type="number" id="targetAmount" value="20" min="1" step="1" oninput="calculateAll()"
+                   class="w-full bg-gray-900/90 border border-gray-700 rounded-xl pl-8 pr-4 py-2 text-white font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1.5">充值入金网络</label>
+          <select id="networkFee" onchange="calculateAll()" class="w-full bg-gray-900/90 border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+            <option value="1.0">TRC20 / 交易所提现 (~1.0 USDT)</option>
+            <option value="0.5">Arbitrum / Optimism (~0.5 USDT)</option>
+            <option value="0.0" selected>交易所内部转账 / 零网络费 (0 USDT)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1.5">是否计入首发开卡费分摊</label>
+          <select id="includeIssueFee" onchange="calculateAll()" class="w-full bg-gray-900/90 border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+            <option value="0" selected>不计入（仅算单次消费）</option>
+            <option value="1">计入（首开卡总花费）</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 实时对比列表 (按到手总成本排序) -->
+      <div class="space-y-3 pt-2">
+        <div class="flex items-center justify-between text-xs text-gray-400 px-2 font-medium">
+          <span>卡片名称 & 费率模型</span>
+          <div class="flex gap-6 sm:gap-12 text-right">
+            <span>综合损耗率</span>
+            <span class="w-24">实际所需支付</span>
+          </div>
+        </div>
+
+        <div id="calculatorResults" class="space-y-2.5">
+          <!-- 动态渲染计算结果 -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 模块 2: 场景测活与众包反馈组件 -->
+    <section class="glass-card rounded-2xl p-6 glow-purple space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-800 pb-4">
+        <div>
+          <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+            <span class="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 text-sm">⚡</span>
+            渠道场景实时测活与社区报障
+          </h2>
+          <p class="text-xs text-gray-400 mt-0.5">点击下方各渠道状态图标，可即时提交实测成功/拒付反馈并更新成功率</p>
+        </div>
+        <!-- 图例说明 (与截图完全对齐) -->
+        <div class="flex items-center gap-3 text-xs">
+          <span class="flex items-center gap-1 text-emerald-400">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span> 支持
+          </span>
+          <span class="flex items-center gap-1 text-amber-400">
+            <span class="w-2 h-2 rounded-full bg-amber-400"></span> 条件支持
+          </span>
+          <span class="flex items-center gap-1 text-gray-400">
+            <span class="w-2 h-2 rounded-full bg-gray-500"></span> 不支持
+          </span>
+        </div>
+      </div>
+
+      <!-- 卡片列表演示 -->
+      <div class="space-y-4" id="cardsLivenessContainer">
+        <!-- 动态渲染卡片及测活网格 -->
+      </div>
+    </section>
+
+  </div>
+
+  <!-- 反馈弹窗 Modal -->
+  <div id="voteModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="glass-card bg-gray-900 border border-gray-700 rounded-2xl max-w-sm w-full p-5 space-y-4 text-left shadow-2xl">
+      <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+        <h3 class="font-semibold text-white text-sm" id="modalTitle">提交实测反馈</h3>
+        <button onclick="closeModal()" class="text-gray-400 hover:text-white text-lg leading-none">&times;</button>
+      </div>
+
+      <div class="space-y-3">
+        <p class="text-xs text-gray-300" id="modalDesc">请选择你的实测结果：</p>
+        
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="selectVote('SUCCESS')" id="btnSuccess" class="p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-xs font-medium flex flex-col items-center gap-1 transition">
+            <span class="text-lg">✅</span>
+            <span>扣款成功</span>
+          </button>
+          <button onclick="selectVote('FAIL')" id="btnFail" class="p-3 rounded-xl border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-medium flex flex-col items-center gap-1 transition">
+            <span class="text-lg">❌</span>
+            <span>支付失败/被拒</span>
+          </button>
+        </div>
+
+        <div id="failReasonBox" class="hidden space-y-1.5 pt-1">
+          <label class="text-[11px] text-gray-400">失败原因（选填）</label>
+          <select id="failReason" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 text-xs text-white">
+            <option>Stripe 提示 "Your card was declined"</option>
+            <option>触发 3DS 验证但收不到验证码</option>
+            <option>平台提示该卡 BIN 属于高风险地区</option>
+            <option>其他原因</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-gray-800">
+        <button onclick="closeModal()" class="px-3 py-1.5 text-xs text-gray-400 hover:text-white">取消</button>
+        <button onclick="submitVote()" class="px-4 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition shadow-sm">提交反馈</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const cardData = [
+      {
+        id: "bybit",
+        name: "Bybit U卡",
+        tag: "申请台湾地区，身份证即可",
+        issueFee: 0,
+        depositRate: 0.0,
+        fxRate: 0.009,
+        scenarios: {
+          wechat: { status: "SUPPORTED", label: "微信", note: "单笔200元以下免3%手续费", success: 96, fail: 4 },
+          alipay: { status: "SUPPORTED", label: "支付宝", note: "绑卡即刷", success: 98, fail: 2 },
+          applePay: { status: "SUPPORTED", label: "Apple Pay", note: "需切换地区", success: 92, fail: 8 },
+          googlePay: { status: "SUPPORTED", label: "Google Pay", note: "正常", success: 95, fail: 5 },
+          chatgpt: { status: "CONDITIONAL", label: "ChatGPT", note: "需干净家宽IP+免税州地址", success: 78, fail: 22 },
+          claude: { status: "CONDITIONAL", label: "Claude", note: "风控严格，建议美国家宽", success: 68, fail: 32 }
+        }
+      },
+      {
+        id: "mexc",
+        name: "MEXC New U卡",
+        tag: "开卡 0 USD (活动减免20U)",
+        issueFee: 0,
+        depositRate: 0.01,
+        fxRate: 0.015,
+        scenarios: {
+          wechat: { status: "SUPPORTED", label: "微信", note: "扫码消费顺畅", success: 94, fail: 6 },
+          alipay: { status: "SUPPORTED", label: "支付宝", note: "支持线下线下消费", success: 93, fail: 7 },
+          applePay: { status: "NOT_SUPPORTED", label: "Apple Pay", note: "暂不支持钱包绑定", success: 5, fail: 95 },
+          googlePay: { status: "SUPPORTED", label: "Google Pay", note: "支持", success: 88, fail: 12 },
+          chatgpt: { status: "SUPPORTED", label: "ChatGPT", note: "测试批次通过率高", success: 91, fail: 9 },
+          claude: { status: "SUPPORTED", label: "Claude", note: "实测可充值订阅", success: 85, fail: 15 }
+        }
+      },
+      {
+        id: "pokepay",
+        name: "Pokepay Card",
+        tag: "护照开卡 · 开卡费 10U",
+        issueFee: 10,
+        depositRate: 0.015,
+        fxRate: 0.01,
+        scenarios: {
+          wechat: { status: "SUPPORTED", label: "微信", note: "良好", success: 91, fail: 9 },
+          alipay: { status: "SUPPORTED", label: "支付宝", note: "良好", success: 90, fail: 10 },
+          applePay: { status: "NOT_SUPPORTED", label: "Apple Pay", note: "不支持", success: 2, fail: 98 },
+          googlePay: { status: "SUPPORTED", label: "Google Pay", note: "支持", success: 89, fail: 11 },
+          chatgpt: { status: "SUPPORTED", label: "ChatGPT", note: "老牌稳定开卡", success: 94, fail: 6 },
+          claude: { status: "CONDITIONAL", label: "Claude", note: "部分号段被拒", success: 72, fail: 28 }
+        }
+      },
+      {
+        id: "bitget",
+        name: "Bitget Wallet U卡 (DCS)",
+        tag: "FX 1% · 开卡免年费",
+        issueFee: 0,
+        depositRate: 0.01,
+        fxRate: 0.01,
+        scenarios: {
+          wechat: { status: "SUPPORTED", label: "微信", note: "支持大额扫码", success: 93, fail: 7 },
+          alipay: { status: "SUPPORTED", label: "支付宝", note: "绑定简单", success: 94, fail: 6 },
+          applePay: { status: "NOT_SUPPORTED", label: "Apple Pay", note: "暂无渠道", success: 10, fail: 90 },
+          googlePay: { status: "SUPPORTED", label: "Google Pay", note: "支持", success: 90, fail: 10 },
+          chatgpt: { status: "SUPPORTED", label: "ChatGPT", note: "新加坡卡段顺畅", success: 90, fail: 10 },
+          claude: { status: "CONDITIONAL", label: "Claude", note: "有限支持", success: 65, fail: 35 }
+        }
+      }
+    ];
+
+    function calculateAll() {
+      const targetAmount = parseFloat(document.getElementById('targetAmount').value) || 0;
+      const networkFee = parseFloat(document.getElementById('networkFee').value) || 0;
+      const includeIssueFee = parseInt(document.getElementById('includeIssueFee').value) || 0;
+
+      const results = cardData.map(card => {
+        const issueCost = includeIssueFee ? card.issueFee : 0;
+        const fxCost = targetAmount * card.fxRate;
+        const subtotal = targetAmount + fxCost;
+        const totalDepositNeed = subtotal / (1 - card.depositRate);
+        const finalCost = totalDepositNeed + networkFee + issueCost;
+        const totalLoss = finalCost - targetAmount;
+        const lossPercent = targetAmount > 0 ? ((totalLoss / targetAmount) * 100).toFixed(1) : 0;
+
+        return {
+          ...card,
+          finalCost: finalCost.toFixed(2),
+          totalLoss: totalLoss.toFixed(2),
+          lossPercent,
+          details: `充值费 ${(card.depositRate * 100).toFixed(1)}% + FX ${(card.fxRate * 100).toFixed(1)}%`
+        };
+      });
+
+      results.sort((a, b) => parseFloat(a.finalCost) - parseFloat(b.finalCost));
+
+      const container = document.getElementById('calculatorResults');
+      container.innerHTML = results.map((item, idx) => `
+        <div class="flex items-center justify-between p-3.5 rounded-xl bg-gray-900/60 border ${idx === 0 ? 'border-emerald-500/40 bg-emerald-950/10' : 'border-gray-800'} hover:border-gray-700 transition">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="font-medium text-sm text-white">${item.name}</span>
+              ${idx === 0 ? '<span class="text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 font-semibold border border-emerald-500/30">最具性价比</span>' : ''}
+            </div>
+            <div class="text-xs text-gray-500 flex items-center gap-2">
+              <span>${item.details}</span>
+              ${includeIssueFee && item.issueFee > 0 ? `<span class="text-amber-400">(含开卡费 ${item.issueFee}U)</span>` : ''}
+            </div>
+          </div>
+          
+          <div class="flex items-center gap-6 sm:gap-12 text-right">
+            <div>
+              <span class="text-xs font-semibold ${idx === 0 ? 'text-emerald-400' : 'text-gray-300'}">+${item.lossPercent}%</span>
+              <p class="text-[10px] text-gray-500">损耗 $${item.totalLoss}</p>
+            </div>
+            <div class="w-24">
+              <span class="text-sm font-bold text-white font-mono">${item.finalCost}</span>
+              <span class="text-[11px] text-gray-400 block font-normal">USDT</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function setAmount(val, label) {
+      document.getElementById('targetAmount').value = val;
+      calculateAll();
+    }
+
+    function renderLiveness() {
+      const container = document.getElementById('cardsLivenessContainer');
+      container.innerHTML = cardData.map(card => `
+        <div class="p-4 rounded-xl bg-gray-900/70 border border-gray-800 space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="font-semibold text-white text-sm flex items-center gap-2">
+                <span>${card.name}</span>
+              </div>
+              <p class="text-xs text-gray-400 mt-0.5">${card.tag}</p>
+            </div>
+            <button onclick="alert('即将跳转 ${card.name} 专属开卡通道')" class="text-xs px-3 py-1.5 rounded-lg bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 border border-indigo-500/30 transition">
+              立即开卡 &rarr;
+            </button>
+          </div>
+
+          <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 pt-1">
+            ${Object.entries(card.scenarios).map(([key, s]) => {
+              const statusColors = {
+                SUPPORTED: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
+                CONDITIONAL: "border-amber-500/30 bg-amber-500/10 text-amber-300",
+                NOT_SUPPORTED: "border-gray-700/60 bg-gray-800/40 text-gray-400"
+              };
+              const icons = {
+                SUPPORTED: "✓",
+                CONDITIONAL: "!",
+                NOT_SUPPORTED: "✕"
+              };
+              const totalVotes = s.success + s.fail;
+              const rate = Math.round((s.success / totalVotes) * 100);
+
+              return `
+                <div onclick="openVoteModal('${card.id}', '${card.name}', '${key}', '${s.label}')"
+                     class="badge-status cursor-pointer p-2 rounded-xl border ${statusColors[s.status]} flex flex-col items-center justify-center text-center gap-1 group relative">
+                  <div class="flex items-center gap-1">
+                    <span class="text-xs font-medium text-white">${s.label}</span>
+                    <span class="text-[10px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold ${statusColors[s.status]}">
+                      ${icons[s.status]}
+                    </span>
+                  </div>
+                  <div class="text-[10px] text-gray-400 scale-95 flex items-center gap-1">
+                    <span>${rate}% 成功</span>
+                  </div>
+                  <div class="opacity-0 group-hover:opacity-100 transition absolute -top-8 bg-black/90 text-[10px] text-gray-200 px-2 py-1 rounded shadow-lg pointer-events-none whitespace-nowrap z-20">
+                    ${s.note} · 点击反馈
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    let currentVoteContext = null;
+    let selectedVoteType = 'SUCCESS';
+
+    function openVoteModal(cardId, cardName, scenarioKey, scenarioLabel) {
+      currentVoteContext = { cardId, cardName, scenarioKey, scenarioLabel };
+      document.getElementById('modalTitle').textContent = `为「${cardName}」反馈【${scenarioLabel}】`;
+      document.getElementById('modalDesc').textContent = `最近 24 小时实测该卡支付 ${scenarioLabel} 是否顺畅？`;
+      selectVote('SUCCESS');
+      document.getElementById('voteModal').classList.remove('hidden');
+      document.getElementById('voteModal').classList.add('flex');
+    }
+
+    function closeModal() {
+      document.getElementById('voteModal').classList.add('hidden');
+      document.getElementById('voteModal').classList.remove('flex');
+    }
+
+    function selectVote(type) {
+      selectedVoteType = type;
+      const btnSuccess = document.getElementById('btnSuccess');
+      const btnFail = document.getElementById('btnFail');
+      const failReasonBox = document.getElementById('failReasonBox');
+
+      if (type === 'SUCCESS') {
+        btnSuccess.classList.add('ring-2', 'ring-emerald-400');
+        btnFail.classList.remove('ring-2', 'ring-red-400');
+        failReasonBox.classList.add('hidden');
+      } else {
+        btnFail.classList.add('ring-2', 'ring-red-400');
+        btnSuccess.classList.remove('ring-2', 'ring-emerald-400');
+        failReasonBox.classList.remove('hidden');
+      }
+    }
+
+    function submitVote() {
+      if (!currentVoteContext) return;
+      const { cardId, scenarioKey } = currentVoteContext;
+      const card = cardData.find(c => c.id === cardId);
+      if (card && card.scenarios[scenarioKey]) {
+        if (selectedVoteType === 'SUCCESS') {
+          card.scenarios[scenarioKey].success += 1;
+        } else {
+          card.scenarios[scenarioKey].fail += 1;
+          const rate = card.scenarios[scenarioKey].success / (card.scenarios[scenarioKey].success + card.scenarios[scenarioKey].fail);
+          if (rate < 0.75) {
+            card.scenarios[scenarioKey].status = "CONDITIONAL";
+          }
+        }
+      }
+      closeModal();
+      renderLiveness();
+      alert(`感谢反馈！已更新 ${currentVoteContext.scenarioLabel} 的社区成功率。`);
+    }
+
+    calculateAll();
+    renderLiveness();
+  </script>
+</body>
+</html>

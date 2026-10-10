@@ -1,0 +1,11 @@
+name = "u-cards"
+compatibility_date = "2024-04-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "out"
+
+# Cloudflare D1 Database 绑定配置
+[[d1_databases]]
+binding = "DB"
+database_name = "u_card_catalog"
+database_id = "083b8604-26de-4dab-94ad-eb453ba70979"
+preview_database_id = "083b8604-26de-4dab-94ad-eb453ba70979"
